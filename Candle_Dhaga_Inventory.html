@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Candle Viscose Dhaga Inventory</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f5f5f5;
+    color: #222;
+  }
+  header {
+    background: #d6541f;
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  .container { max-width: 900px; margin: 0 auto; padding: 16px; }
+  .search-box {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .toggle-btn {
+    background: #fff;
+    color: #d6541f;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .toggle-btn.active { background: #222; color: #fff; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+  }
+  th { background: #4472C4; color: #fff; position: sticky; top: 0; }
+  tr:hover { background: #fafafa; }
+  input.qty-input {
+    width: 70px;
+    padding: 6px;
+    font-size: 15px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  input.qty-input:disabled {
+    border: none;
+    background: transparent;
+    color: #222;
+    font-weight: bold;
+  }
+  .available { color: #1d9e75; font-weight: bold; }
+  .not-available { color: #c0392b; }
+  .info { font-size: 13px; color: #666; padding: 8px 0; }
+  .stats { display:flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+  .stat-card { background:#fff; border-radius:8px; padding:10px 16px; font-size:14px; flex:1; min-width:120px; text-align:center; }
+  .stat-card b { display:block; font-size:20px; }
+  .save-msg { color: #1d9e75; font-size: 13px; margin-left: 8px; }
+  .lock-row {
+    margin-bottom: 12px;
+  }
+  .lock-row input {
+    padding: 8px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    margin-right: 6px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Candle Viscose Dhaga - Cone Inventory</h1>
+  <div id="editControls">
+    <button class="toggle-btn" id="editToggle" onclick="toggleEdit()">Edit Mode On / Off</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div id="lockSection" class="lock-row" style="display:none;">
+    <input type="password" id="pwInput" placeholder="Edit password" />
+    <button class="toggle-btn" onclick="checkPassword()">Unlock Edit</button>
+    <span id="pwMsg" style="color:#c0392b; font-size:13px;"></span>
+  </div>
+
+  <input type="text" class="search-box" id="searchBox" placeholder="Dhaga number search karein... (e.g. 3001)" oninput="render()">
+
+  <div class="stats">
+    <div class="stat-card">Total Shades<b id="totalShades">0</b></div>
+    <div class="stat-card">Available<b id="totalAvailable">0</b></div>
+    <div class="stat-card">Total Cones<b id="totalCones">0</b></div>
+  </div>
+
+  <div class="info" id="modeInfo">View mode: numbers search karein, available cones dekhein.</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Sr#</th>
+        <th>Shade Number</th>
+        <th>Cones Available</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+</div>
+
+<script>
+const SHADES = [3001, 3005, 3950, 3003, 3002, 3662, 4542, 3642, 3550, 3071, 3061, 3067, 4010, 3013, 3448, 2071, 3149, 4309, 3743, 3123, 4067, 3918, 3805, 3455, 4011, 4091, 3135, 3488, 3023, 4012, 4013, 3180, 4014, 3124, 3223, 3064, 3026, 3634, 3070, 4125, 3719, 4398, 4289, 3868, 3406, 4288, 4070, 3795, 3809, 3807, 3526, 3171, 4015, 3125, 3747, 3068, 4016, 3772, 3603, 3025, 4573, 3648, 3065, 3137, 4071, 4586, 4136, 4069, 4199, 3159, 3350, 3352, 3192, 3225, 3359, 4249, 3191, 4207, 4038, 3190, 3340, 3053, 4567, 4195, 3009, 3912, 4175, 3779, 3706, 3226, 3742, 3450, 3155, 3476, 4137, 3867, 3716, 3710, 3278, 3736, 3726, 3078, 3378, 3037, 3179, 3411, 3017, 3014, 3018, 3019, 3254, 3722, 3152, 3020, 3936, 3874, 3721, 4186, 4051, 4272, 4075, 3790, 3409, 3178, 3221, 3473, 4413, 3956, 3733, 4118, 3472, 3414, 3147, 3791, 3059, 3863, 4301, 3751, 3146, 3281, 3007, 3770, 3038, 4420, 4343, 3182, 3036, 4419, 4045, 3381, 3684, 3181, 3763, 3382, 3657, 3385, 3419, 3384, 3035, 3420, 3422, 4043, 3236, 3557, 4570, 3039, 3121, 4022, 3447, 4329, 3116, 3608, 3016, 4370, 3148, 4144, 3111, 4338, 3031, 3797, 3321, 3782, 3108, 4023, 4328, 3235, 3319, 4097, 3451, 3309, 3117, 4426, 3310, 3109, 4337, 4332, 3110, 4571, 3749, 3187, 3383, 3186, 4276, 4577, 3315, 4116, 4242, 3154, 4241, 3119, 4431, 3412, 4296, 4580, 3444, 4569, 4387, 4473, 3034, 3622, 3184, 3354, 3413, 3705, 4344, 3949, 3798, 3880, 3174, 3627, 4024, 3639, 4595, 3232, 3080, 4063, 4233, 3032, 3446, 3881, 3605, 4064, 3033, 3477, 3793, 3826, 3445, 3720, 3188, 3389, 4423, 3875, 4589, 4061, 3311, 4379, 4594, 3794, 3773, 4564, 4593, 3759, 3334, 3718, 4458, 3320, 3872, 3636, 3842, 3330, 3322, 3112, 4066, 3343, 4462, 3233, 3873, 3122, 3760, 4459, 3423, 3362, 3387, 4468, 4477, 3424, 4591, 3940, 3388, 3421, 3386, 3823, 3452, 3658, 4148, 4501, 4225, 4424, 4453, 3074, 3075, 4355, 3030, 3755, 4354, 3028, 4320, 3143, 4258, 3335, 4455, 3878, 3133, 3430, 4568, 3177, 3029, 3296, 3425, 3076, 3134, 3166, 3836, 4006, 3757, 3167, 3175, 4020, 3042, 3376, 4563, 3366, 3242, 3882, 3775, 3243, 4322, 3043, 3704, 4489, 3402, 3044, 3244, 3401, 3828, 3027, 4324, 3092, 3274, 3458, 3429, 4590, 3888, 4482, 4479, 3789, 3426, 3403, 3607, 3404, 3176, 4480, 4598, 4599, 4597, 6093, 6094, 3764, 3095, 3295, 3297, 4194, 3483, 3088, 4546, 3808, 3246, 3291, 3052, 3132, 3089, 4131, 4192, 3045, 3046, 3299, 3723, 3631, 3883, 2089, 3289, 4314, 3758, 3435, 3806, 3746, 3846, 3096, 3432, 3831, 3431, 3091, 3610, 4120, 3090, 3672, 3890, 3835, 3822, 3380, 3185, 3514, 3293, 3280, 4205, 3748, 3915, 3284, 3768, 4204, 4319, 3104, 3150, 4340, 4139, 4124, 3100, 3047, 4035, 3248, 3799, 4101, 3048, 4102, 3049, 3527, 4388, 3935, 3302, 4264, 3245, 3932, 3663, 3369, 3301, 4238, 4103, 3753, 3895, 3249, 3247, 4104, 4105, 3370, 3304, 3103, 3470, 3397, 3453, 3390, 3290, 3303, 3449, 4156, 3660, 4280, 3260, 3105, 3193, 4361, 4308, 4300, 3405, 3306, 3433, 4382, 3157, 4360, 3106, 3140, 3714, 3156, 3170, 3010, 4359, 4081, 3337, 3227, 4193, 4208, 3098, 4260, 3391, 3392, 3400, 3701, 4386, 3686, 3394, 3641, 4410, 3396, 3434, 3393, 3395, 3357, 4285, 3559, 4171, 4547, 3563, 4490, 4500, 3560, 3555, 3439, 3922, 3085, 3087, 3928, 3069, 4362, 4513, 4470, 4518, 3011, 3118, 3063, 3040, 3490, 4596, 4229, 3479, 3623, 3553, 3552, 3464, 4550, 3012, 3463, 3626, 3062, 3240, 4551, 4496, 3436, 3739, 4303, 3462, 3754, 3531, 4583, 4286, 3792, 3694, 3676, 4381, 3931, 3512, 4506, 3963, 4524, 3487, 4548, 3163, 3904, 3876, 3943, 3318, 4185, 4509, 4365, 3917, 3360, 4556, 4504, 3737, 3921, 3364, 3604, 4358, 3628, 3041, 3438, 4227, 3520, 3927, 3925, 3784, 3866, 3437, 3361, 4553, 3363, 3241, 3461, 3160, 3161, 3162, 3700, 3929, 3082, 4341, 3565, 3926, 3127, 4304, 3342, 3443, 3715, 4305, 4141, 3551, 4213, 3084, 3408, 3055, 3255, 3732, 4575, 4197, 3410, 4541, 3616, 3126, 4539, 4083, 3930, 3142, 4111, 4369, 3504, 3500, 3468, 3624, 3457, 3256, 4142, 4267, 4220, 3173, 3741, 3870, 3257, 3417, 3253, 3840, 4414, 3056, 4161, 3418, 4209, 4441, 4585, 3497, 3711, 3907, 4143, 3239, 4215, 3948, 3021, 3495, 4086, 4087, 3158, 4442, 4134, 3358, 3058, 3441, 3145, 3871, 3906, 3129, 4135, 3416, 3833, 3717, 3914, 3941, 4582, 3938, 3665, 4214, 4211, 3138, 3440, 3407, 3338, 3060, 3136, 4084, 4234, 3128, 3144, 3057, 4082, 4384, 4196, 3341, 4274, 4133, 4212, 4416, 3442, 3887, 3566, 3054, 4438, 4110, 4219, 3336, 4222, 3532, 3000];
+const STORAGE_KEY = "candle_dhaga_inventory_v1";
+const EDIT_PASSWORD = "candle123"; // ye password change kar lein
+
+let inventory = {};
+let editMode = false;
+let unlocked = false;
+
+function loadInventory() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    inventory = JSON.parse(saved);
+  } else {
+    inventory = {};
+    SHADES.forEach(s => inventory[s] = 0);
+  }
+  // ensure all shades exist
+  SHADES.forEach(s => { if (!(s in inventory)) inventory[s] = 0; });
+}
+
+function saveInventory() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory));
+}
+
+function toggleEdit() {
+  if (!editMode) {
+    document.getElementById('lockSection').style.display = 'flex';
+  } else {
+    editMode = false;
+    document.getElementById('editToggle').classList.remove('active');
+    document.getElementById('lockSection').style.display = 'none';
+    render();
+  }
+}
+
+function checkPassword() {
+  const pw = document.getElementById('pwInput').value;
+  if (pw === EDIT_PASSWORD) {
+    editMode = true;
+    unlocked = true;
+    document.getElementById('editToggle').classList.add('active');
+    document.getElementById('lockSection').style.display = 'none';
+    document.getElementById('pwMsg').textContent = '';
+    render();
+  } else {
+    document.getElementById('pwMsg').textContent = 'Galat password';
+  }
+}
+
+function updateQty(shade, value) {
+  let v = parseInt(value);
+  if (isNaN(v) || v < 0) v = 0;
+  inventory[shade] = v;
+  saveInventory();
+  updateStats();
+  // update status cell
+  const statusCell = document.getElementById('status-' + shade);
+  if (statusCell) {
+    if (v > 0) {
+      statusCell.textContent = 'Available';
+      statusCell.className = 'available';
+    } else {
+      statusCell.textContent = 'Not Available';
+      statusCell.className = 'not-available';
+    }
+  }
+}
+
+function updateStats() {
+  let total = SHADES.length;
+  let available = 0;
+  let totalCones = 0;
+  SHADES.forEach(s => {
+    const q = inventory[s] || 0;
+    if (q > 0) available++;
+    totalCones += q;
+  });
+  document.getElementById('totalShades').textContent = total;
+  document.getElementById('totalAvailable').textContent = available;
+  document.getElementById('totalCones').textContent = totalCones;
+}
+
+function render() {
+  const query = document.getElementById('searchBox').value.trim();
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  let filtered = SHADES;
+  if (query) {
+    filtered = SHADES.filter(s => String(s).includes(query));
+  }
+
+  document.getElementById('modeInfo').textContent = editMode
+    ? 'Edit mode ON: cones ki quantity update karein, save apne aap ho jayega.'
+    : 'View mode: numbers search karein, available cones dekhein.';
+
+  filtered.forEach((shade, idx) => {
+    const qty = inventory[shade] || 0;
+    const tr = document.createElement('tr');
+
+    const tdSr = document.createElement('td');
+    tdSr.textContent = idx + 1;
+
+    const tdShade = document.createElement('td');
+    tdShade.textContent = shade;
+    tdShade.style.fontWeight = 'bold';
+
+    const tdQty = document.createElement('td');
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'qty-input';
+    input.min = '0';
+    input.value = qty;
+    input.disabled = !editMode;
+    input.addEventListener('change', (e) => updateQty(shade, e.target.value));
+    tdQty.appendChild(input);
+
+    const tdStatus = document.createElement('td');
+    tdStatus.id = 'status-' + shade;
+    if (qty > 0) {
+      tdStatus.textContent = 'Available';
+      tdStatus.className = 'available';
+    } else {
+      tdStatus.textContent = 'Not Available';
+      tdStatus.className = 'not-available';
+    }
+
+    tr.appendChild(tdSr);
+    tr.appendChild(tdShade);
+    tr.appendChild(tdQty);
+    tr.appendChild(tdStatus);
+    tbody.appendChild(tr);
+  });
+
+  updateStats();
+}
+
+loadInventory();
+render();
+</script>
+
+</body>
+</html>
